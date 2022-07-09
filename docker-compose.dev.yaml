@@ -1,0 +1,54 @@
+version: '3'
+
+services: 
+
+  app:
+    build: 
+      context: node
+      dockerfile: Dockerfile.dev
+    image: samukamaciel/fullcycle-desafio-docker-node:dev
+    container_name: app
+    entrypoint: dockerize -wait tcp://db-mysql:3306 -timeout 20s docker-entrypoint.sh
+    networks: 
+      - node-network
+    volumes: 
+      - ./node:/usr/src/app
+    tty: true
+    ports: 
+      - "3000:3000"
+    depends_on: 
+       - db-mysql
+
+  db-mysql:
+    image: mysql:5.7
+    command: --innodb-use-native-aio=0
+    container_name: db-mysql
+    restart: always
+    tty: true
+    volumes: 
+      - mysql_data:/var/lib/mysql
+      - ./mysql/scripts/:/docker-entrypoint-initdb.d
+    environment: 
+      - MYSQL_DATABASE=nodedb
+      - MYSQL_ROOT_PASSWORD=root
+    networks: 
+      - node-network
+
+  nginx:
+    build: 
+      context: ./nginx
+      dockerfile: Dockerfile.prod
+    image: samukamaciel/nginx:prod
+    container_name: nginx
+    networks: 
+      - node-network
+    ports: 
+      - "8080:80"  
+
+networks: 
+  node-network:
+    driver: bridge      
+
+volumes:
+  mysql_data:
+    driver: local
