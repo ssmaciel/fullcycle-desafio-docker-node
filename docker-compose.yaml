@@ -33,8 +33,10 @@ services:
       - node-network
 
   nginx:
-    image: samukamaciel/nginx:prod
+    image: nginx:1.15.0-alpine
     container_name: nginx
+    volumes:
+      - ./nginx/:/etc/nginx/conf.d/
     networks: 
       - node-network
     ports: 
